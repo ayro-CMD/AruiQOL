@@ -1,25 +1,41 @@
-Arui QOL
-Quality of Life addon for World of Warcraft 3.3.5 (WotLK)
-CurseForge · Discord · GitHub
+# AruiQOL
 
-Features
-Auto-Sell & Auto-Repair -- Sell grey/white items and repair gear automatically at vendors. Supports guild bank repairs and detailed sell logs.
-RezQuotes -- Broadcast funny quotes when casting resurrection spells. Supports all rez types (Paladin, Priest, Shaman, Druid, Warlock, DK, Engineer). Configurable channels (Say/Party/Raid/Whisper).
-SmartTrack -- Automatically switches Hunter tracking to match your target's creature type (Beast, Demon, Dragonkin, Elemental, Giant, Humanoid, Undead). Includes filters for Improved Tracking, combat-only, instance-only, and more.
-Boss Announce -- Detects boss pulls and kills, announces them in Party/Raid/Guild chat with optional fight timer and HP threshold alerts.
-Chat Filter -- Hides LFG spam, boost/WTS/WTB ads, and guild recruitment from chat. Supports custom keywords and spam burst detection.
-Interrupt Announce -- Displays class-colored interrupt notifications on screen. Draggable anchor, party/raid interrupts, optional chat output.
-FastDelete -- Skips the "type DELETE" confirmation when destroying items.
-FriendsNot -- Battle.net-style toast notifications when friends log in or out.
-Installation
-Download from CurseForge/GitHub and extract into Interface/AddOns/.
+A lightweight Quality of Life addon for WoW 3.3.5 (WotLK).
 
-Commands
-Command	Description
-/aqol /aruiqol /qol	Open settings
-/st	Toggle SmartTrack
-/st debug	Toggle SmartTrack debug
-Compatibility
-WoW 3.3.5a (WotLK) and compatible private servers.
+## Features
 
-by AYRO
+- **Interrupt Announce** — Displays and announces spell interrupts in party/raid chat
+- **SmartTrack** — Auto-switches tracking based on your target's creature type
+- **Fast Delete** — Skip the type-to-delete confirmation when destroying items
+- **Auto Sell/Repair** — Sell grey (and white) items + auto-repair at vendors
+- **RezQuotes** — Send funny messages when resurrecting other players
+- **Boss Announce** — Announce boss fight start and duration in chat
+- **Chat Filter** — Filter out LFG, boost, WTS/WTB spam from World channel
+- **Friends Notify** — Get notified when friends log on or off
+
+## Installation
+
+1. Download the latest release `.zip`
+2. Extract to `Interface/AddOns/`
+3. Reload UI (`/reload`)
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/aqol` | Open settings |
+| `/st` | Toggle SmartTrack |
+| `/aqolinterrupt` | Toggle interrupt display anchor |
+| `/aqolinterrupttest` | Test interrupt display |
+
+## Configuration
+
+Open the settings panel with `/aqol` or click the minimap button. Each module can be enabled/disabled independently.
+
+## Requirements
+
+- WoW 3.3.5 (WotLK)
+
+## Author
+
+AYRO
