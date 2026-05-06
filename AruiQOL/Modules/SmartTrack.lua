@@ -151,7 +151,7 @@ local function UpdateTalentCache()
     end
 end
 
-local function InsistOff()
+InsistOff = function()
     if insistFrame then
         insistFrame:SetScript("OnUpdate", nil)
         insistFrame:Hide()
