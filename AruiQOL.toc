@@ -1,0 +1,10 @@
+## Interface: 30300
+## Title: Arui QOL
+## Notes: Quality of Life features
+## Author: AYRO
+## Version: 1.3.0
+## SavedVariables: AruiQOLDB
+
+Compat.lua
+Core.lua
+loader.xml
