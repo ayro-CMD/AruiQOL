@@ -1,0 +1,17 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+    ..\..\FrameXML\UI.xsd">
+    <Script file="FastDelete.lua"/>
+    <Script file="FriendsNot.lua"/>
+    <Script file="QOL.lua"/>
+    <Script file="SellJunk.lua"/>
+    <Script file="BossAnnounce.lua"/>
+    <Script file="ChatFilter.lua"/>
+    <Script file="InteruptAnnounce.lua"/>
+    <Script file="RezQuotes.lua"/>
+    <Script file="RezQuotesQuotes.lua"/>
+    <Script file="SmartTrack.lua"/>
+    <Script file="SpellAnnounce.lua"/>
+    <Script file="Options.lua"/>
+</Ui>
