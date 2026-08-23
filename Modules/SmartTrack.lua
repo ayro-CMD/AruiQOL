@@ -1,6 +1,4 @@
--- ============================================================
 -- Arui QOL - SmartTrack Module
--- ============================================================
 
 local NONE_TEX = "Interface\\Minimap\\Tracking\\None"
 local FEIGN_DEATH = GetSpellInfo(5384)
@@ -27,13 +25,11 @@ local type2spellname = {
     Undead    = "Track Undead",
 }
 
--- Reverse lookup: texture -> type
 local texture2type = {}
 for typ, tex in pairs(type2texture) do
     texture2type[tex] = typ
 end
 
--- Internal state
 local texture2index = {}
 local index2texture = {}
 local index2name = {}
@@ -44,17 +40,14 @@ local insistAttempts = 0
 local tickAccum = 0
 local oocTrackingIndex = nil
 local haveImpTracking = false
-local InsistOff  -- forward declaration
+local InsistOff
 
--- ==================== DEBUG ====================
 
 local function dprint(msg)
     if AruiQOLDB and AruiQOLDB.SmartTrack and AruiQOLDB.SmartTrack.debug then
         print("|cff88ccff[SmartTrack]|r " .. msg)
     end
-end
-
--- ==================== HELPER FUNCTIONS ====================
+end 
 
 local function IsFeigning()
     if not FEIGN_DEATH then return false end
@@ -73,8 +66,6 @@ local function tex2typ(tex)
     return texture2type[tex] or "miscellaneous"
 end
 
--- ==================== TRACKING LOGIC ====================
-
 local function UpdateLookupTables()
     wipe(texture2index)
     wipe(index2texture)
@@ -90,18 +81,15 @@ local function UpdateLookupTables()
         local name, texture, active, category = GetTrackingInfo(i)
 
         if not name or not texture then
-            -- skip nil entries
         else
             index2name[i] = name
             texture2index[texture] = i
             index2texture[i] = texture
 
-            -- Method 1: Match by texture
             if texture2type[texture] then
                 type2index[texture2type[texture]] = i
                 count = count + 1
             else
-                -- Method 2: Match by spell name
                 for typ, spellName in pairs(type2spellname) do
                     if not type2index[typ] and name and (name == spellName or string.find(string.lower(name), string.lower(spellName), 1, true)) then
                         type2index[typ] = i
@@ -116,7 +104,6 @@ local function UpdateLookupTables()
 
     dprint("Tracking types mapped: " .. count)
 
-    -- Check if we can still track what we want
     if expectedTrackTexture and not texture2index[expectedTrackTexture] then
         dprint("Lost ability to track " .. tex2typ(expectedTrackTexture))
         InsistOff()
@@ -286,8 +273,6 @@ local function MaybeUpdateTracking()
     AutoTrack()
 end
 
--- ==================== EVENT HANDLERS ====================
-
 local eventFrame = nil
 
 local function OnEvent(self, event, ...)
@@ -342,7 +327,6 @@ local function OnEvent(self, event, ...)
     end
 end
 
--- ==================== iPHONE-STYLE TOGGLE ====================
 
 local toggleFrame = nil
 local toggleKnob = nil
@@ -353,7 +337,6 @@ local function UpdateToggleVisual()
     if not db then return end
 
     if db.enabled then
-        -- ON state: green background, knob on right
         toggleFrame.bg:SetColorTexture(0.15, 0.65, 0.25, 0.95)
         toggleFrame.border:SetColorTexture(0.2, 0.8, 0.3, 1)
         toggleKnob:ClearAllPoints()
@@ -362,7 +345,6 @@ local function UpdateToggleVisual()
         toggleFrame.label:SetText("ST")
         toggleFrame.label:SetTextColor(1, 1, 1, 0.95)
     else
-        -- OFF state: dark background, knob on left
         toggleFrame.bg:SetColorTexture(0.2, 0.2, 0.22, 0.95)
         toggleFrame.border:SetColorTexture(0.4, 0.4, 0.42, 1)
         toggleKnob:ClearAllPoints()
@@ -383,7 +365,6 @@ local function CreateSmartTrackToggle()
     local db = AruiQOLDB and AruiQOLDB.SmartTrack
     if not db then return end
 
-    -- Container frame
     toggleFrame = CreateFrame("Button", "AruiQOLSmartTrackToggle", UIParent)
     toggleFrame:SetSize(70, 26)
     toggleFrame:SetFrameStrata("MEDIUM")
@@ -391,24 +372,20 @@ local function CreateSmartTrackToggle()
     toggleFrame:EnableMouse(true)
     toggleFrame:RegisterForClicks("LeftButtonUp")
 
-    -- Background
     toggleFrame.bg = toggleFrame:CreateTexture(nil, "BACKGROUND")
     toggleFrame.bg:SetAllPoints()
     toggleFrame.bg:SetColorTexture(0.2, 0.2, 0.22, 0.95)
 
-    -- Border
     toggleFrame.border = toggleFrame:CreateTexture(nil, "BORDER")
     toggleFrame.border:SetPoint("TOPLEFT", -1, 1)
     toggleFrame.border:SetPoint("BOTTOMRIGHT", 1, -1)
     toggleFrame.border:SetColorTexture(0.4, 0.4, 0.42, 1)
 
-    -- Label "ST" on the left side
     toggleFrame.label = toggleFrame:CreateFontString(nil, "OVERLAY")
     toggleFrame.label:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
     toggleFrame.label:SetPoint("LEFT", toggleFrame, "LEFT", 6, 0)
     toggleFrame.label:SetText("ST")
 
-    -- Knob
     toggleKnob = CreateFrame("Frame", nil, toggleFrame)
     toggleKnob:SetSize(20, 20)
     toggleKnob.bg = toggleKnob:CreateTexture(nil, "ARTWORK")
@@ -425,7 +402,6 @@ local function CreateSmartTrackToggle()
             (d.enabled and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
     end)
 
-    -- Tooltip
     toggleFrame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText("SmartTrack Toggle", 0.8, 0.9, 1)
@@ -454,7 +430,6 @@ local function CreateSmartTrackToggle()
         if self.isMoving then
             self:StopMovingOrSizing()
             self.isMoving = false
-            -- Save position
             local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
             local d = AruiQOLDB and AruiQOLDB.SmartTrack
             if d then
@@ -468,7 +443,6 @@ local function CreateSmartTrackToggle()
         end
     end)
 
-    -- Restore position or default
     if db.togglePos then
         toggleFrame:ClearAllPoints()
         toggleFrame:SetPoint(db.togglePos.point, UIParent, db.togglePos.relativePoint, db.togglePos.x, db.togglePos.y)
@@ -477,7 +451,6 @@ local function CreateSmartTrackToggle()
         toggleFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -200, -200)
     end
 
-    -- Show/hide based on setting
     if db.showToggle == false then
         toggleFrame:Hide()
     end
@@ -510,8 +483,6 @@ end
 _G.AruiQOLSmartTrackToggleFrame = toggleFrame
 _G.AruiQOLSmartTrackToggleVisibility = ToggleSmartTrackVisibility
 
--- ==================== SLASH COMMANDS ====================
-
 SLASH_SMARTTRACK1 = "/st"
 SLASH_SMARTTRACK2 = "/smarttrack"
 SlashCmdList["SMARTTRACK"] = function(msg)
@@ -534,7 +505,6 @@ SlashCmdList["SMARTTRACK"] = function(msg)
     end
 end
 
--- ==================== INITIALIZATION ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -558,7 +528,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             return
         end
 
-        -- Create event frame
         eventFrame = CreateFrame("Frame")
         eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
         eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
@@ -570,21 +539,17 @@ initFrame:SetScript("OnEvent", function(self, event)
         eventFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
         eventFrame:SetScript("OnEvent", OnEvent)
 
-        -- Create insist frame
         insistFrame = CreateFrame("Frame")
         insistFrame:Hide()
 
-        -- RAKKULA BAD HEALER
         C_Timer.After(2, function()
             UpdateLookupTables()
             UpdateTalentCache()
 
-            -- Create the external toggle button
             if AruiQOLDB.SmartTrack.showToggle ~= false then
                 CreateSmartTrackToggle()
             end
 
-            -- Expose toggle frame reference after creation
             _G.AruiQOLSmartTrackToggleFrame = toggleFrame
 
             if not AruiQOLDB.SmartTrack.quiet then

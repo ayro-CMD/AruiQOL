@@ -1,19 +1,14 @@
--- ============================================================
 -- Arui QOL - Sell Junk & Auto Repair Module
--- ============================================================
-
 local SellJunk = {}
 
 local GREY   = 0
 local WHITE  = 1
 
--- Item quality names for display
 local QUALITY_NAMES = {
     [0] = "|cff9d9d9dGrey|r",
     [1] = "|cffffffffWhite|r",
 }
 
--- ==================== FORMAT MONEY ====================
 
 local function FormatMoney(copper)
     if not copper or copper <= 0 then return "|cffaaaaaa0|r" end
@@ -33,7 +28,6 @@ local function FormatMoney(copper)
     return str
 end
 
--- ==================== SELL ITEMS ====================
 
 local function GetItemSellPrice(itemLink)
     if not itemLink then return 0 end
@@ -78,8 +72,6 @@ local function SellItems(maxQuality)
     return itemsSold, totalCopper, soldItems
 end
 
--- ==================== AUTO REPAIR ====================
-
 local repairAttempt = 0
 local MAX_REPAIR_ATTEMPTS = 8
 
@@ -87,7 +79,6 @@ local function DoRepair()
     local db = AruiQOLDB and AruiQOLDB.QOL
     if not db or not db.autoRepair then return end
 
-    -- Check if merchant can repair
     local canRepair = false
     if CanMerchantRepair then
         canRepair = CanMerchantRepair()
@@ -129,8 +120,6 @@ local function DoRepair()
     print("|cff88ccff[AruiQOL]|r Repaired: " .. FormatMoney(repairCost))
 end
 
--- ==================== MAIN MODULE ====================
-
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
 initFrame:SetScript("OnEvent", function(self, event)
@@ -140,7 +129,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         local merchantFrame = CreateFrame("Frame")
         merchantFrame:RegisterEvent("MERCHANT_SHOW")
         merchantFrame:SetScript("OnEvent", function()
-            -- Don't process if in combat
             if UnitAffectingCombat("player") then return end
 
             local db = AruiQOLDB and AruiQOLDB.QOL

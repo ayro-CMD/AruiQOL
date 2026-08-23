@@ -1,8 +1,4 @@
--- ============================================================
 -- Arui QOL - Spell Announce Module
--- ============================================================
-
--- ==================== CONSTANTS ====================
 local MAX_LINES      = 6
 local SHOW_DURATION  = 5.0
 local FADE_START     = 3.0
@@ -11,7 +7,6 @@ local DEFAULT_SIZE   = 15
 local FONT_PATH      = "Fonts\\ARIALN.TTF"
 local TOTEM_SLOTS    = MAX_TOTEMS or 4
 
--- ==================== CLASS COLORS ====================
 local CLASS_COLORS = {
     WARRIOR     = { r = 0.78, g = 0.61, b = 0.43 },
     MAGE        = { r = 0.41, g = 0.80, b = 0.94 },
@@ -25,7 +20,6 @@ local CLASS_COLORS = {
     DEATHKNIGHT = { r = 0.77, g = 0.12, b = 0.23 },
 }
 
--- ==================== SPELL CATEGORIES ====================
 
 -- Totems
 local TOTEM_SPELLS = {
@@ -151,6 +145,7 @@ local DEFENSIVE_SPELLS = {
 local IMPORTANT_SPELLS = {
     [78675] = "Solar Beam",
     [30283] = "Shadowfury",
+    [805114] = "Mass Nightmare",
 
 }
 
@@ -160,7 +155,6 @@ local TOTEM_BATCH_NAMES = {
     ["Call of the Spirits"] = true,
 }
 
--- Combine all tracked spells
 local ALL_TRACKED = {}
 for id, name in pairs(TOTEM_SPELLS) do ALL_TRACKED[id] = { name = name, cat = "totem" } end
 for id, name in pairs(DEFENSIVE_SPELLS) do ALL_TRACKED[id] = { name = name, cat = "defensive" } end
@@ -173,7 +167,6 @@ for id, data in pairs(ALL_TRACKED) do
     end
 end
 
--- ==================== STATE ====================
 local classColorCache = {}
 local activeMessages  = {}
 local displayAnchor   = nil
@@ -184,9 +177,8 @@ local spellTargets = {}
 
 
 local recentAnnounces = {}
-local DEDUP_WINDOW = 2.0  -- seconds
+local DEDUP_WINDOW = 2.0
 
--- ==================== HELPER FUNCTIONS ====================
 
 local function ColorName(name, guid, isNPC)
     if not name then return "|cffc74040Unknown|r" end
@@ -227,7 +219,6 @@ local function ColorName(name, guid, isNPC)
     return result
 end
 
--- Find a unit token that matches a GUID
 local function FindUnitByGUID(guid)
     if not guid then return nil end
     if UnitGUID("player") == guid then return "player" end
@@ -259,8 +250,6 @@ local function IsGroupMember(sourceGUID)
     end
     return false
 end
-
--- ==================== VISUAL DISPLAY ====================
 
 local function RepositionMessages()
     local offset = 0
@@ -314,8 +303,6 @@ local function VisualOnUpdate(self, elapsed)
     if changed then RepositionMessages() end
 end
 
--- ==================== ANCHOR ====================
-
 local function ToggleAnchor()
     if not displayAnchor then return end
     anchorVisible = not anchorVisible
@@ -342,8 +329,6 @@ local function ToggleAnchor()
 end
 
 AruiQOL_SpellToggleAnchor = ToggleAnchor
-
--- ==================== CHAT OUTPUT ====================
 
 local pendingChat = {}
 local lastChatTime = 0
@@ -379,12 +364,10 @@ local function ProcessChatQueue()
     pendingChat = remaining
 end
 
--- ==================== CATEGORY COLORS ====================
-
 local CAT_COLORS = {
-    totem     = "33ff99",  -- green
-    defensive = "ff9933",  -- orange
-    important = "ff3366",  -- red/pink
+    totem     = "33ff99",
+    defensive = "ff9933",
+    important = "ff3366",
 }
 
 
@@ -395,7 +378,6 @@ local function AnnounceSpell(spellId, sourceName, sourceGUID, targetName)
     local tracked = ALL_TRACKED[spellId]
     if not tracked then return end
 
-    -- Category check
     if tracked.cat == "totem" and not db.trackTotems then return end
     if tracked.cat == "defensive" and not db.trackDefensives then return end
     if tracked.cat == "important" and not db.trackImportant then return end
@@ -442,12 +424,10 @@ local function AnnounceSpell(spellId, sourceName, sourceGUID, targetName)
         chatMsg = string.gsub(sourceName or "Unknown", "%-.*", "") .. " - " .. tracked.name .. "!!"
     end
 
-    -- Visual display
     if db.visualEnabled then
         ShowVisualMessage(msg)
     end
 
-    -- Chat announce
     if db.chatEnabled then
         local output = db.output or "Auto"
         if output == "Self" then
@@ -473,8 +453,6 @@ local function AnnounceSpell(spellId, sourceName, sourceGUID, targetName)
         end
     end
 end
-
--- ==================== COMBAT LOG HANDLER ====================
 
 local function OnCombatLogEvent(...)
     local db = AruiQOLDB and AruiQOLDB.SpellAnnounce
@@ -515,7 +493,6 @@ local function OnCombatLogEvent(...)
             " spell=" .. tostring(spellName))
     end
 
-    -- For combat log, we have destName for target
     AnnounceSpell(spellId, sourceName, sourceGUID, destName)
 end
 
@@ -652,8 +629,6 @@ local function OnUnitSpellcastSucceeded(unit, spellName, spellRank, lineID, spel
     AnnounceSpell(foundId, sourceName, sourceGUID, targetName)
 end
 
--- ==================== DEBUG ====================
-
 local spellDebug = false
 
 local function DoDebug()
@@ -685,21 +660,16 @@ local function ToggleSpellDebug()
 end
 AruiQOL_SpellSniff = ToggleSpellDebug
 
--- ==================== TEST FUNCTION ====================
 
 local function DoTest()
     local pName = UnitName("player")
     local pGUID = UnitGUID("player")
     local pColored = ColorName(pName, pGUID, false)
 
-    -- Test totem format
     ShowVisualMessage(pColored .. " - " .. string.format("|cff33ff99Tremor Totem|r"))
-    -- Test defensive with target
     local tColored = ColorName("TargetPlayer", nil, false)
     ShowVisualMessage(pColored .. " cast " .. string.format("|cffff9933Pain Suppression|r") .. " on " .. tColored)
-    -- Test defensive self (now shows "on self" too)
     ShowVisualMessage(pColored .. " cast " .. string.format("|cffff9933Divine Shield|r") .. " on " .. pColored)
-    -- Test important
     ShowVisualMessage(pColored .. " - " .. string.format("|cffff3366Solar Beam|r") .. "!!")
 
     local db = AruiQOLDB and AruiQOLDB.SpellAnnounce
@@ -716,8 +686,6 @@ local function DoTest()
 end
 AruiQOL_SpellTest = DoTest
 
--- ==================== INIT ====================
-
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
 initFrame:SetScript("OnEvent", function(self, event)
@@ -727,7 +695,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         local db = AruiQOLDB and AruiQOLDB.SpellAnnounce
         if not db then return end
 
-        -- Clear class color cache on group changes
         local cacheFrame = CreateFrame("Frame")
         cacheFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
         cacheFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
@@ -736,7 +703,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             wipe(classColorCache)
         end)
 
-        -- Create visual display anchor
         displayAnchor = CreateFrame("Frame", "AruiQOLSpellAnchor", UIParent)
         displayAnchor:SetSize(400, (MAX_LINES * (DEFAULT_SIZE + LINE_PADDING)) + 20)
         displayAnchor:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
@@ -767,7 +733,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         end)
         displayAnchor:SetScript("OnUpdate", VisualOnUpdate)
 
-        -- Close button
         local closeBtn = CreateFrame("Button", nil, displayAnchor, "UIPanelCloseButton")
         closeBtn:SetSize(20, 20)
         closeBtn:SetPoint("TOPRIGHT", displayAnchor, "TOPRIGHT", 2, 2)
@@ -775,7 +740,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         closeBtn:Hide()
         displayAnchor.closeBtn = closeBtn
 
-        -- Label
         local anchorLabel = displayAnchor:CreateFontString(nil, "OVERLAY")
         anchorLabel:SetFont(FONT_PATH, 10)
         anchorLabel:SetPoint("TOPLEFT", displayAnchor, "TOPLEFT", 6, -4)
@@ -784,7 +748,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         anchorLabel:Hide()
         displayAnchor.anchorLabel = anchorLabel
 
-        -- Chat queue processor
         chatFrame = CreateFrame("Frame")
         chatFrame:SetScript("OnUpdate", ProcessChatQueue)
 
@@ -802,7 +765,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             end
 
             if targetName and targetName ~= "" and sentSpellName then
-                -- Cache by unit token
                 local key1 = unit .. ":" .. sentSpellName
                 spellTargets[key1] = targetName
 
@@ -841,15 +803,12 @@ initFrame:SetScript("OnEvent", function(self, event)
             OnCombatLogEvent(...)
         end)
 
-        -- Clean up target cache and dedup table periodically
         local cleanupFrame = CreateFrame("Frame")
         cleanupFrame:SetScript("OnUpdate", function(self, elapsed)
             self._elapsed = (self._elapsed or 0) + elapsed
             if self._elapsed > 5 then
                 self._elapsed = 0
-                -- Clear stale target cache entries
                 wipe(spellTargets)
-                -- Prune old dedup entries
                 local now = GetTime()
                 for k, t in pairs(recentAnnounces) do
                     if (now - t) > DEDUP_WINDOW then
@@ -859,7 +818,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             end
         end)
 
-        -- Slash commands
         SLASH_ARUIQOLSPELL1 = "/aqolspell"
         SlashCmdList["ARUIQOLSPELL"] = ToggleAnchor
 

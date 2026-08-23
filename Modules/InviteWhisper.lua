@@ -1,15 +1,11 @@
--- ============================================================
 -- Arui QOL - InviteWhisper Module
--- ============================================================
 
 local InviteWhisper = {}
 
--- ==================== STATE ====================
 
 local lastInviteTime = 0
 local INVITE_THROTTLE = 2.0
 
--- ==================== KEYWORD MATCHING ====================
 
 local function MatchesKeyword(message)
     local db = AruiQOLDB and AruiQOLDB.InviteWhisper
@@ -29,7 +25,6 @@ local function MatchesKeyword(message)
     return false
 end
 
--- ==================== INVITE LOGIC ====================
 
 local function TryInvite(sender)
     local db = AruiQOLDB and AruiQOLDB.InviteWhisper
@@ -53,13 +48,12 @@ local function TryInvite(sender)
         end
     end
 
-    -- Check group size
     local groupSize = 0
     if GetNumRaidMembers then groupSize = GetNumRaidMembers() end
     if groupSize == 0 and GetNumPartyMembers then groupSize = GetNumPartyMembers() + 1 end
 
     if IsInRaid and IsInRaid() and groupSize >= 40 then
-        return  -- Raid full
+        return
     end
 
     if not (IsInRaid and IsInRaid()) and groupSize >= 5 then
@@ -89,7 +83,6 @@ local function TryInvite(sender)
     end
 end
 
--- ==================== EVENT HANDLER ====================
 
 local function OnWhisper(self, event, msg, sender)
     local db = AruiQOLDB and AruiQOLDB.InviteWhisper
@@ -99,13 +92,11 @@ local function OnWhisper(self, event, msg, sender)
     if cleanSender == UnitName("player") then return end
     if UnitInParty(cleanSender) or UnitInRaid(cleanSender) then return end
 
-    -- Check keyword match
     if MatchesKeyword(msg) then
         TryInvite(cleanSender)
     end
 end
 
--- ==================== INIT ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -124,8 +115,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         print("|cff88ccff[InviteWhisper]|r Loaded - Keywords: |cff88ccff" .. keywordStr .. "|r")
     end
 end)
-
--- ==================== SLASH COMMANDS ====================
 
 SLASH_ARUIQOLIW1 = "/aqoliw"
 SlashCmdList["ARUIQOLIW"] = function(msg)

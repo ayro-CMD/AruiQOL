@@ -1,6 +1,4 @@
--- ============================================================
 -- Arui QOL - Main Core System
--- ============================================================
 
 AruiQOL = CreateFrame("Frame", "AruiQOLFrame", UIParent)
 local AruiQOL = AruiQOL
@@ -23,7 +21,6 @@ AruiQOL:SetMovable(true)
 AruiQOL:RegisterForDrag("LeftButton")
 AruiQOL:SetScript("OnDragStart", AruiQOL.StartMoving)
 
--- ==================== TITLE BAR ====================
 local titleBg = AruiQOL:CreateTexture(nil, "BACKGROUND")
 titleBg:SetPoint("TOPLEFT")
 titleBg:SetPoint("TOPRIGHT")
@@ -40,19 +37,16 @@ version:SetPoint("TOPRIGHT", AruiQOL, "TOPRIGHT", -40, -10)
 version:SetText("v1.3.2 |cffb188ffAYRO|r")
 version:SetTextColor(0.6, 0.6, 0.7)
 
--- Close button
 local closeBtn = CreateFrame("Button", nil, AruiQOL, "UIPanelCloseButton")
 closeBtn:SetPoint("TOPRIGHT", AruiQOL, "TOPRIGHT", -2, -2)
 closeBtn:SetWidth(28)
 closeBtn:SetHeight(28)
 
--- ==================== CONTENT AREA ====================
 local ContentArea = CreateFrame("Frame", nil, AruiQOL)
 ContentArea:SetPoint("TOPLEFT", 5, -40)
 ContentArea:SetPoint("BOTTOMRIGHT", -5, 5)
 AruiQOL.ContentArea = ContentArea
 
--- ==================== DRAG STOP + POSITION SAVE ====================
 AruiQOL:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     if AruiQOLDB and AruiQOLDB.Settings and AruiQOLDB.Settings.savePosition then
@@ -63,7 +57,6 @@ AruiQOL:SetScript("OnDragStop", function(self)
     end
 end)
 
--- ==================== MINIMAP BUTTON ====================
 local miniButton = CreateFrame("Button", "AruiQOLMiniMapButton", Minimap)
 miniButton:SetWidth(32)
 miniButton:SetHeight(32)
@@ -111,7 +104,6 @@ miniButton:SetScript("OnLeave", function(self)
     GameTooltip:Hide()
 end)
 
--- ==================== SLASH COMMANDS ====================
 SLASH_ARUIQOL1 = "/aqol"
 SLASH_ARUIQOL2 = "/aruiqol"
 SLASH_ARUIQOL3 = "/qol"
@@ -123,7 +115,6 @@ SlashCmdList["ARUIQOL"] = function(msg)
     end
 end
 
--- ==================== KATSMANE ====================
 local function InitDB()
     if not AruiQOLDB then AruiQOLDB = {} end
 
@@ -181,7 +172,7 @@ local function InitDB()
             AruiQOLDB.ChatFilter.filterWhisperSpam = true
         end
         if AruiQOLDB.ChatFilter.filterNonLatin == nil then
-            -- Migrate from old key name
+            -- vinni gatto zecca
             if AruiQOLDB.ChatFilter.filterNonEnglish ~= nil then
                 AruiQOLDB.ChatFilter.filterNonLatin = AruiQOLDB.ChatFilter.filterNonEnglish
                 AruiQOLDB.ChatFilter.filterNonEnglish = nil
@@ -235,7 +226,6 @@ local function InitDB()
         }
     end
 
-    -- Migrate from old Redeemer → RezQuotes → ResAnnounce
     if AruiQOLDB.Redeemer and not AruiQOLDB.RezMigrated then
         AruiQOLDB.ResAnnounce = AruiQOLDB.Redeemer
         AruiQOLDB.Redeemer = nil
@@ -246,7 +236,7 @@ local function InitDB()
         AruiQOLDB.RezQuotes = nil
         AruiQOLDB.ResAnnounceMigrated = true
     end
-    -- SmartTrack migration / new fields
+
     if AruiQOLDB.SmartTrack then
         if AruiQOLDB.SmartTrack.showToggle == nil then
             AruiQOLDB.SmartTrack.showToggle = false
@@ -316,7 +306,6 @@ local function InitDB()
         AruiQOLDB.Settings.savePosition = true
     end
 
-    -- ==================== NEW MODULES ====================
 
     if not AruiQOLDB.AutoAccept then
         AruiQOLDB.AutoAccept = {
@@ -418,7 +407,6 @@ local function InitDB()
     end
 end
 
--- ==================== PLAYER_LOGIN ====================
 AruiQOL:RegisterEvent("PLAYER_LOGIN")
 AruiQOL:SetScript("OnEvent", function(self, event)
     if event == "PLAYER_LOGIN" then
@@ -426,14 +414,12 @@ AruiQOL:SetScript("OnEvent", function(self, event)
 
         InitDB()
 
-        -- Restore window position
         if AruiQOLDB.Settings.savePosition and AruiQOLDB.Settings.windowPosition then
             local wp = AruiQOLDB.Settings.windowPosition
             self:ClearAllPoints()
             self:SetPoint(wp.point, UIParent, wp.relativePoint, wp.x, wp.y)
         end
 
-        -- Apply scale
         if AruiQOLDB.Settings.uiScale then
             self:SetScale(AruiQOLDB.Settings.uiScale)
         end
@@ -447,7 +433,6 @@ AruiQOL:SetScript("OnEvent", function(self, event)
     end
 end)
 
--- ==================== SAVE ON LOGOUT ====================
 local saveFrame = CreateFrame("Frame")
 saveFrame:RegisterEvent("PLAYER_LOGOUT")
 saveFrame:RegisterEvent("PLAYER_QUIT")

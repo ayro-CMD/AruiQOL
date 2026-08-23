@@ -1,6 +1,4 @@
--- ============================================================
 -- Arui QOL - Options Module
--- ============================================================
 
 local AruiQOLFrame = _G.AruiQOLFrame
 
@@ -8,9 +6,6 @@ local Options = {}
 local settingsCreated = false
 local categoryFrames = {}
 local currentCategory = "qol"
-
--- ==================== UI HELPER FUNCTIONS ====================
-
 local function CreateModernButton(parent, text, width, height)
     local btn = CreateFrame("Button", nil, parent)
     btn:SetWidth(width)
@@ -69,7 +64,6 @@ local function CreateCleanEditBox(parent, width, height, isMultiLine)
     return editBox
 end
 
--- Custom checkbox button
 local function CreateSettingCheckbox(parent)
     local checkbox = CreateFrame("Button", nil, parent)
     checkbox:SetSize(24, 24)
@@ -152,7 +146,6 @@ local function CreateCustomSlider(parent, minVal, maxVal, step)
 
     local minusBtn = CreateArrowButton("-", nil, "LEFT")
 
-    -- Track background
     local track = CreateFrame("Button", nil, container)
     track:SetSize(trackWidth, trackHeight)
     track:SetPoint("LEFT", minusBtn, "RIGHT", 2, 0)
@@ -168,7 +161,6 @@ local function CreateCustomSlider(parent, minVal, maxVal, step)
     trackBorder:SetPoint("BOTTOMRIGHT", 1, -1)
     trackBorder:SetColorTexture(0.4, 0.4, 0.4, 0.8)
 
-    -- Fill bar
     local fill = track:CreateTexture(nil, "OVERLAY")
     fill:SetHeight(trackHeight - 4)
     fill:SetPoint("LEFT", 1, 0)
@@ -180,7 +172,6 @@ local function CreateCustomSlider(parent, minVal, maxVal, step)
     return container, track, fill, minusBtn, plusBtn, trackWidth
 end
 
--- ==================== SETTINGS DEFINITIONS ====================
 local SETTINGS = {
     { id = "qol", name = "QoL", settings = {
         { type = "header", desc = "Quality of Life features" },
@@ -268,7 +259,6 @@ local SETTINGS = {
             get = function() return AruiQOLDB.SmartTrack.enabled end,
             set = function(v)
                 AruiQOLDB.SmartTrack.enabled = v
-                -- Sync with external toggle visual
                 if _G.AruiQOLSmartTrackToggleFrame then
                     local f = _G.AruiQOLSmartTrackToggleFrame
                     if f and f.UpdateVisual then f:UpdateVisual() end
@@ -530,8 +520,6 @@ local SETTINGS = {
             get = function(id) return AruiQOLDB.SpellAnnounce.output == id end,
             set = function(id, val) if val then AruiQOLDB.SpellAnnounce.output = id end end },
     }},
-
-    -- ==================== NEW MODULES ====================
 
     { id = "autoaccept", name = "AutoAccept", settings = {
         { type = "header", desc = "Auto-accept resurrect, summon, auto-release PvP, auto-decline" },
@@ -847,8 +835,6 @@ local SETTINGS = {
     }},
 }
 
--- ==================== CREATE SETTING CONTROLS ====================
-
 local function CreateCheckboxRow(parent, setting, yOff)
     local row = CreateFrame("Frame", nil, parent)
     row:SetWidth(parent:GetWidth() - 20)
@@ -894,7 +880,6 @@ local function CreateSliderRow(parent, setting, yOff)
     label:SetText(setting.name)
     label:SetTextColor(1, 1, 1)
 
-    -- Value text
     local valueText = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     valueText:SetPoint("RIGHT", row, "RIGHT", -10, 0)
     valueText:SetTextColor(0.6, 0.8, 1)
@@ -902,31 +887,24 @@ local function CreateSliderRow(parent, setting, yOff)
     local step = setting.step or 1
     local isInteger = step >= 1
 
-    -- Read current value
     local currentVal = setting.get()
     if type(currentVal) ~= "number" or currentVal < setting.min then currentVal = setting.min end
     if currentVal > setting.max then currentVal = setting.max end
 
     valueText:SetText(isInteger and tostring(math.floor(currentVal)) or string.format("%.2f", currentVal))
 
-    -- Create button-based slider
     local container, track, fill, minusBtn, plusBtn, trackWidth = CreateCustomSlider(row, setting.min, setting.max, step)
 
-    -- Update visual fill bar based on value
     local function UpdateVisual(val)
         local ratio = (val - setting.min) / (setting.max - setting.min)
         ratio = math.max(0, math.min(1, ratio))
         fill:SetWidth((trackWidth - 2) * ratio)
-    end
+    end 
 
-    -- Update value and visuals
     local function SetValue(newVal)
-        -- Snap to step
         local rv = math.floor(newVal / step + 0.5) * step
-        -- Clamp
         if rv < setting.min then rv = setting.min end
         if rv > setting.max then rv = setting.max end
-        -- Only update if changed
         if setting.get() ~= rv then
             setting.set(rv)
         end
@@ -937,17 +915,14 @@ local function CreateSliderRow(parent, setting, yOff)
     -- ERNESTO IS ALREADY IN GROUP
     UpdateVisual(currentVal)
 
-    -- Minus button
     minusBtn:SetScript("OnClick", function(self, button)
         SetValue(setting.get() - step)
     end)
 
-    -- Plus button
     plusBtn:SetScript("OnClick", function(self, button)
         SetValue(setting.get() + step)
     end)
 
-    -- Click on track: jump to that position
     track:SetScript("OnClick", function(self, button)
         local relX = GetCursorPosition()
         local scale = self:GetEffectiveScale()
@@ -959,13 +934,11 @@ local function CreateSliderRow(parent, setting, yOff)
         SetValue(targetVal)
     end)
 
-    -- Mouse wheel on the whole row
     row:EnableMouseWheel(true)
     row:SetScript("OnMouseWheel", function(self, delta)
         SetValue(setting.get() + delta * step)
     end)
 
-    -- Tooltip on the row
     row:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(setting.name, 1, 1, 1)
@@ -1010,8 +983,6 @@ local function CreateEditBoxRow(parent, setting, yOff)
     return row
 end
 
--- ==================== iPHONE-STYLE TOGGLE ROW ====================
-
 local function CreateToggleRow(parent, setting, yOff)
     local row = CreateFrame("Frame", nil, parent)
     row:SetWidth(parent:GetWidth() - 20)
@@ -1023,30 +994,25 @@ local function CreateToggleRow(parent, setting, yOff)
     label:SetText(setting.name)
     label:SetTextColor(1, 1, 1)
 
-    -- Toggle switch
     local toggleBtn = CreateFrame("Button", nil, row)
     toggleBtn:SetSize(52, 24)
     toggleBtn:SetPoint("RIGHT", row, "RIGHT", 0, 0)
 
-    -- Background track
     local trackBg = toggleBtn:CreateTexture(nil, "BACKGROUND")
     trackBg:SetAllPoints()
     trackBg:SetColorTexture(0.15, 0.15, 0.18, 1)
 
-    -- Border
     local trackBorder = toggleBtn:CreateTexture(nil, "BORDER")
     trackBorder:SetPoint("TOPLEFT", -1, 1)
     trackBorder:SetPoint("BOTTOMRIGHT", 1, -1)
     trackBorder:SetColorTexture(0.4, 0.4, 0.42, 1)
 
-    -- Knob
     local knob = CreateFrame("Frame", nil, toggleBtn)
     knob:SetSize(20, 20)
 
     local knobBg = knob:CreateTexture(nil, "ARTWORK")
     knobBg:SetAllPoints()
 
-    -- State text
     local stateText = toggleBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     stateText:SetPoint("CENTER", toggleBtn, "CENTER", 0, 0)
 
@@ -1082,7 +1048,6 @@ local function CreateToggleRow(parent, setting, yOff)
         UpdateVisual()
     end)
 
-    -- Hover effect
     toggleBtn:SetScript("OnEnter", function()
         if isOn then
             trackBorder:SetColorTexture(0.3, 0.85, 0.4, 1)
@@ -1094,7 +1059,6 @@ local function CreateToggleRow(parent, setting, yOff)
         UpdateVisual()
     end)
 
-    -- Row tooltip
     row:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(setting.name, 1, 1, 1)
@@ -1176,8 +1140,6 @@ local function CreateRadioGroup(parent, setting, yOff)
     return group
 end
 
--- ==================== LINK BUTTON CREATION ====================
-
 local LINK_BUTTONS = {
     { name = "Discord",    url = "https://discord.gg/T5rtyW9yX4",        icon = "Interface\\AddOns\\AruiQOL\\Media\\discord.tga",   color = {0.57, 0.63, 0.82} },
     { name = "CurseForge", url = "https://www.curseforge.com/wow/addons/aruiqol", icon = "Interface\\AddOns\\AruiQOL\\Media\\forge.tga", color = {1.0, 0.55, 0.12} },
@@ -1190,31 +1152,26 @@ local function CreateLinkButton(parent, data, xOff)
     btn:SetSize(64, 64)
     btn:SetPoint("TOPLEFT", parent, "TOPLEFT", xOff, 0)
 
-    -- Background
     btn.bg = btn:CreateTexture(nil, "BACKGROUND")
     btn.bg:SetAllPoints()
     btn.bg:SetColorTexture(0.15, 0.15, 0.15, 0.9)
 
-    -- Border
     btn.border = btn:CreateTexture(nil, "BORDER")
     btn.border:SetPoint("TOPLEFT", -1, 1)
     btn.border:SetPoint("BOTTOMRIGHT", 1, -1)
     btn.border:SetColorTexture(0.4, 0.4, 0.4, 0.8)
 
-    -- Icon texture
     btn.icon = btn:CreateTexture(nil, "OVERLAY")
     btn.icon:SetSize(40, 40)
     btn.icon:SetPoint("CENTER", 0, 6)
     btn.icon:SetTexture(data.icon)
     btn.icon:SetVertexColor(data.color[1], data.color[2], data.color[3])
 
-    -- Label
     btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     btn.label:SetPoint("BOTTOM", 0, 2)
     btn.label:SetText(data.name)
     btn.label:SetTextColor(1, 1, 1)
 
-    -- Highlight
     btn.hoverTex = btn:CreateTexture(nil, "HIGHLIGHT")
     btn.hoverTex:SetAllPoints()
     btn.hoverTex:SetColorTexture(data.color[1], data.color[2], data.color[3], 0.25)
@@ -1271,7 +1228,6 @@ local function CreateLinksPanel(parent)
     return panel
 end
 
--- ==================== BUILD A CATEGORY PAGE ====================
 local function BuildCategoryPage(contentArea, catData)
     
     local scrollFrame = CreateFrame("ScrollFrame", "AruiQOLScroll_" .. catData.id, contentArea, "UIPanelScrollFrameTemplate")
@@ -1309,7 +1265,6 @@ local function BuildCategoryPage(contentArea, catData)
             yOff = yOff - 100
 
         elseif setting.type == "header" then
-            -- Separator + header text
             local sep = scrollContent:CreateTexture(nil, "BACKGROUND")
             sep:SetPoint("TOPLEFT", 10, yOff)
             sep:SetPoint("TOPRIGHT", -10, yOff)
@@ -1351,13 +1306,11 @@ local function BuildCategoryPage(contentArea, catData)
 
     scrollContent:SetHeight(math.max(math.abs(yOff) + 50, 400))
 
-    -- Hide initially
     scrollFrame:Hide()
 
     return scrollFrame
 end
 
--- ==================== CREATE SIDEBAR ====================
 local function CreateSidebar(parent)
     local sidebar = CreateFrame("Frame", nil, parent)
     sidebar:SetWidth(145)
@@ -1387,19 +1340,19 @@ local function CreateSidebar(parent)
         btn.text:SetTextColor(0.8, 0.8, 0.8)
 
         btn:SetScript("OnClick", function()
-            -- Hide all
             for catId, frame in pairs(categoryFrames) do
                 frame:Hide()
             end
-            -- Show selected
+
             if categoryFrames[catData.id] then
                 categoryFrames[catData.id]:Show()
             end
-            -- Update highlights
+
             for _, b in ipairs(buttons) do
                 b.bg:SetColorTexture(0.15, 0.15, 0.15, 0.8)
                 b.text:SetTextColor(0.8, 0.8, 0.8)
             end
+
             btn.bg:SetColorTexture(0.2, 0.4, 0.6, 0.8)
             btn.text:SetTextColor(1, 1, 1)
             currentCategory = catData.id
@@ -1421,7 +1374,6 @@ local function CreateSidebar(parent)
 
         table.insert(buttons, btn)
 
-        -- Build category content
         local contentArea = CreateFrame("Frame", nil, parent)
         contentArea:SetPoint("TOPLEFT", sidebar, "TOPRIGHT", 8, 0)
         contentArea:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -5, 0)
@@ -1434,7 +1386,6 @@ local function CreateSidebar(parent)
         yOff = yOff - 32
     end
 
-    -- Highlight first button
     if buttons[1] then
         buttons[1].bg:SetColorTexture(0.2, 0.4, 0.6, 0.8)
         buttons[1].text:SetTextColor(1, 1, 1)
@@ -1443,7 +1394,6 @@ local function CreateSidebar(parent)
     return sidebar
 end
 
--- ==================== STATIC POPUPS ====================
 StaticPopupDialogs["ARUIQOL_RESET_ALL"] = {
     text = "Reset all Arui QOL settings to defaults? This will reload the UI.",
     button1 = "Yes",
@@ -1471,7 +1421,6 @@ StaticPopupDialogs["ARUIQOL_RESET_ALL"] = {
     hideOnEscape = 1
 }
 
--- ==================== INITIALIZATION ====================
 local function CreateAllSettings()
     if settingsCreated then return end
     settingsCreated = true
@@ -1481,7 +1430,6 @@ local function CreateAllSettings()
 
     CreateSidebar(parent)
 
-    -- Show first category
     if categoryFrames[currentCategory] then
         categoryFrames[currentCategory]:Show()
     end

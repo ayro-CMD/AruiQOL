@@ -1,8 +1,4 @@
--- ============================================================
--- Arui QOL - Compatibility Layer for 3.3.5 WotLK
--- ============================================================
-
--- ==================== C_Timer Polyfill ====================
+-- Arui QOL - Compatibility Layer 3.3.5
 if not C_Timer then
     C_Timer = {}
 
@@ -81,7 +77,6 @@ if not C_Timer then
     end
 end
 
--- ==================== SetColorTexture Polyfill ====================
 local testFrame = CreateFrame("Frame")
 local testTex = testFrame:CreateTexture()
 local textureMt = getmetatable(testTex)
@@ -92,7 +87,7 @@ if textureMt and not textureMt.__index.SetColorTexture then
     end
 end
 
--- ==================== ELECTRASOL è UN CAZZO DI POKEMON ====================
+-- ELECTRASOL è UN CAZZO DI POKEMON
 local frameMt = getmetatable(testFrame)
 if frameMt and not frameMt.__index.SetShown then
     frameMt.__index.SetShown = function(self, shown)

@@ -1,7 +1,4 @@
--- ============================================================
 -- Arui QOL - ResAnnounce Module
--- ============================================================
-
 local resAnnounceFrame = nil
 local PET_NAME = nil
 local hasSoulstone = false
@@ -11,7 +8,6 @@ local function SendAnnouncement(chatMessage, target)
     local db = AruiQOLDB.ResAnnounce
     if not db.enabled then return end
 
-    -- Priority
     if db.displayRaid and GetNumRaidMembers() >= 1 then
         SendChatMessage(chatMessage, "RAID")
     elseif db.displayParty and GetNumPartyMembers() >= 1 then
@@ -20,7 +16,6 @@ local function SendAnnouncement(chatMessage, target)
         SendChatMessage(chatMessage, "SAY")
     end
 
-    -- Also whisper the target
     if db.displayWhisper and target and string.upper(target) ~= "UNKNOWN" then
         SendChatMessage(chatMessage, "WHISPER", nil, target)
     end

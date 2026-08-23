@@ -1,10 +1,6 @@
--- ============================================================
 -- Arui QOL - AutoAccept Module
--- ============================================================
 
 local AutoAccept = {}
-
--- ==================== HELPERS ====================
 
 local function IsInBattleground()
     local _, instanceType = IsInInstance()
@@ -15,8 +11,6 @@ local function IsInArena()
     local _, instanceType = IsInInstance()
     return instanceType == "arena"
 end
-
--- ==================== AUTO ACCEPT RESURRECT ====================
 
 local function HandleResurrect()
     local db = AruiQOLDB and AruiQOLDB.AutoAccept
@@ -41,8 +35,6 @@ local function HandleResurrect()
     end
 end
 
--- ==================== AUTO ACCEPT SUMMON ====================
-
 local function HandleSummon()
     local db = AruiQOLDB and AruiQOLDB.AutoAccept
     if not db or not db.autoAcceptSummon then return end
@@ -63,8 +55,6 @@ local function HandleSummon()
     end
 end
 
--- ==================== AUTO RELEASE PVP ====================
-
 local function HandleAutoRelease()
     local db = AruiQOLDB and AruiQOLDB.AutoAccept
     if not db or not db.autoReleasePvP then return end
@@ -83,8 +73,6 @@ local function HandleAutoRelease()
         end
     end)
 end
-
--- ==================== AUTO DECLINE ====================
 
 local function HandleDeclineDuel()
     local db = AruiQOLDB and AruiQOLDB.AutoAccept
@@ -130,13 +118,9 @@ local function HandleDeclineGuild()
     end
 end
 
--- ==================== EVENT FRAME ====================
-
 local eventFrame = nil
 local confirmFrame = nil
 local deadFrame = nil
-
--- ==================== INIT ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -179,8 +163,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         print("|cff88ccff[AutoAccept]|r Loaded - /aqolaa for options")
     end
 end)
-
--- ==================== SLASH COMMANDS ====================
 
 SLASH_ARUIQOLAA1 = "/aqolaa"
 SlashCmdList["ARUIQOLAA"] = function(msg)

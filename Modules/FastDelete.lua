@@ -1,6 +1,5 @@
---------------------------------------------------------------------------------
 -- Delete Module - Fast Delete Confirmation
---------------------------------------------------------------------------------
+
 local folder, ns = ...
 local addon = CreateFrame('Frame','EasyDeleteConfirmFrame')
 

@@ -1,8 +1,5 @@
--- ============================================================
 -- Arui QOL - Interrupt Announce Module
--- ============================================================
 
--- ==================== CONSTANTS ====================
 local MAX_LINES      = 5
 local SHOW_DURATION  = 4.0
 local FADE_START     = 2.0
@@ -12,13 +9,11 @@ local FONT_PATH      = "Fonts\\ARIALN.TTF"
 local NPC_COLOR      = "c74040"
 local SPELL_COLOR    = "7ad5ff"
 
--- ==================== RAID ICONS ====================
 local RAID_ICONS = { [0] = "" }
 for i = 1, 8 do
     RAID_ICONS[bit.lshift(1, i - 1)] = string.format("{rt%d}", i)
 end
 
--- ==================== CLASS COLORS ====================
 local CLASS_COLORS = {
     WARRIOR     = { r = 0.78, g = 0.61, b = 0.43 },
     MAGE        = { r = 0.41, g = 0.80, b = 0.94 },
@@ -32,13 +27,11 @@ local CLASS_COLORS = {
     DEATHKNIGHT = { r = 0.77, g = 0.12, b = 0.23 },
 }
 
--- ==================== STATE ====================
 local classColorCache = {}
 local activeMessages  = {}
 local displayAnchor   = nil
 local anchorVisible   = false
 
--- ==================== HELPER FUNCTIONS ====================
 
 local function ColorName(name, guid, isNPC)
     if not name then return "|cff" .. NPC_COLOR .. "Unknown|r" end
@@ -105,8 +98,6 @@ local function IsGroupMember(sourceGUID)
     return false
 end
 
--- ==================== VISUAL DISPLAY ====================
-
 local function RepositionMessages()
     local offset = 0
     local db = AruiQOLDB and AruiQOLDB.InterruptAnnounce
@@ -159,8 +150,6 @@ local function VisualOnUpdate(self, elapsed)
     if changed then RepositionMessages() end
 end
 
--- ==================== ANCHOR TOGGLE ====================
-
 local function ToggleAnchor()
     if not displayAnchor then return end
     anchorVisible = not anchorVisible
@@ -174,24 +163,19 @@ local function ToggleAnchor()
         displayAnchor:SetBackdropColor(0, 0, 0, 0.6)
         displayAnchor:SetBackdropBorderColor(0.4, 0.4, 0.4, 0.8)
         displayAnchor:EnableMouse(true)
-        -- Show close button + label
         if displayAnchor.closeBtn then displayAnchor.closeBtn:Show() end
         if displayAnchor.anchorLabel then displayAnchor.anchorLabel:Show() end
         print("|cff88ccff[AruiQOL]|r Anchor visibile - trascina per spostare. Posizione salvata automaticamente.")
     else
         displayAnchor:SetBackdrop(nil)
         displayAnchor:EnableMouse(false)
-        -- Hide close button + label
         if displayAnchor.closeBtn then displayAnchor.closeBtn:Hide() end
         if displayAnchor.anchorLabel then displayAnchor.anchorLabel:Hide() end
         print("|cff88ccff[AruiQOL]|r Anchor nascosta. Posizione salvata nel DB.")
     end
 end
 
--- Expose globally for Options.lua button
 AruiQOL_InterruptToggleAnchor = ToggleAnchor
-
--- ==================== MAIN MODULE ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -210,7 +194,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             wipe(classColorCache)
         end)
 
-        -- ====== Create visual display anchor ======
         displayAnchor = CreateFrame("Frame", "AruiQOLInterruptAnchor", UIParent)
         displayAnchor:SetSize(350, (MAX_LINES * (DEFAULT_SIZE + LINE_PADDING)) + 20)
         displayAnchor:SetPoint("CENTER", UIParent, "CENTER", 0, 100)
@@ -221,7 +204,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             displayAnchor:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
         end
 
-        -- Draggable anchor
         displayAnchor:SetMovable(true)
         displayAnchor:EnableMouse(false)
         displayAnchor:RegisterForDrag("LeftButton")
@@ -243,10 +225,8 @@ initFrame:SetScript("OnEvent", function(self, event)
             end
         end)
 
-        -- OnUpdate for fading messages
         displayAnchor:SetScript("OnUpdate", VisualOnUpdate)
 
-        -- ====== Close button (X) on anchor ======
         local closeBtn = CreateFrame("Button", nil, displayAnchor, "UIPanelCloseButton")
         closeBtn:SetSize(20, 20)
         closeBtn:SetPoint("TOPRIGHT", displayAnchor, "TOPRIGHT", 2, 2)
@@ -271,11 +251,9 @@ initFrame:SetScript("OnEvent", function(self, event)
         anchorLabel:Hide()
         displayAnchor.anchorLabel = anchorLabel
 
-        -- Slash command to toggle anchor
         SLASH_INTERRUPTTOGGLE1 = "/aqolinterrupt"
         SlashCmdList["INTERRUPTTOGGLE"] = ToggleAnchor
 
-        -- Test command
         local function DoTest()
             local testSource = ColorName(UnitName("player"), UnitGUID("player"), false)
             local testDest   = "|cffc74040Nasty Mob|r"
@@ -324,7 +302,6 @@ initFrame:SetScript("OnEvent", function(self, event)
             end
         end)
 
-        -- ====== Combat log event handler ======
         local interruptFrame = CreateFrame("Frame")
         interruptFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
         interruptFrame:SetScript("OnEvent", function(self, ev, ...)
@@ -341,7 +318,7 @@ initFrame:SetScript("OnEvent", function(self, event)
             local ok, err = pcall(function()
                 
                 if type(args[3]) == "string" then
-                    -- Ascension-style
+                    -- Ascension
                     combatEvent   = args[2]
                     sourceGUID    = args[3]
                     sourceName    = args[4]
@@ -369,7 +346,6 @@ initFrame:SetScript("OnEvent", function(self, event)
 
             if not ok then return end
 
-            -- Match interrupt event
             if not combatEvent then return end
             if combatEvent ~= "SPELL_INTERRUPT" then
                 if not string.find(string.lower(combatEvent), "interrupt") then
@@ -388,7 +364,6 @@ initFrame:SetScript("OnEvent", function(self, event)
                 return
             end
 
-            -- ====== Build formatted message ======
             local sourceColored = ColorName(sourceName, sourceGUID, false)
             local raidIcon      = GetRaidIcon(destRaidFlags)
             local destIsPlayer  = IsPlayerGUID(destGUID)
@@ -402,12 +377,10 @@ initFrame:SetScript("OnEvent", function(self, event)
                 msg = sourceColored .. " " .. destColored .. " " .. spellColored
             end
 
-            -- ====== Visual display ======
             if db.visualEnabled then
                 ShowVisualMessage(msg)
             end
 
-            -- ====== Chat announce ======
             if db.chatEnabled then
                 local chatMsg = msg
                 if db.verbose then chatMsg = "=> " .. chatMsg end

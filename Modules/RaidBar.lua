@@ -1,27 +1,17 @@
--- ============================================================
 -- Arui QOL - RaidBar Module
--- ============================================================
 
 local RaidBar = {}
-
--- ==================== CONSTANTS ====================
-
 local BUTTON_SIZE = 30
 local BUTTON_SPACING = 4
 local BAR_HEIGHT = 40
 local BAR_PADDING = 6
 local FONT_PATH = "Fonts\\FRIZQT__.TTF"
-
--- ==================== STATE ====================
-
 local mainFrame = nil
 local pullTimerFrame = nil
 local pullTimerActive = false
 local pullTimerStart = 0
 local pullTimerDuration = 10
 local barButtons = {}
-
--- ==================== CHAT HELPER ====================
 
 local function SendToChannel(msg, channelOverride)
     local db = AruiQOLDB and AruiQOLDB.RaidBar
@@ -59,7 +49,6 @@ local function SendToChannel(msg, channelOverride)
     end
 end
 
--- ==================== PULL TIMER ====================
 
 local function StartPullTimer(duration)
     local db = AruiQOLDB and AruiQOLDB.RaidBar
@@ -111,8 +100,6 @@ local function CancelPullTimer()
     SendToChannel("Pull cancelled!")
 end
 
--- ==================== RAID PAUSE ====================
-
 local function DoRaidPause()
     local db = AruiQOLDB and AruiQOLDB.RaidBar
     if not db or not db.enabled then return end
@@ -122,7 +109,6 @@ local function DoRaidPause()
     print("|cff88ccff[RaidBar]|r Raid pause announced")
 end
 
--- ==================== READY CHECK ====================
 
 local _WoW_DoReadyCheck = DoReadyCheck
 
@@ -132,13 +118,11 @@ local function ReadyCheck()
     end
 end
 
--- ==================== BUTTON CREATION ====================
 
 local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
     local btn = CreateFrame("Button", "AruiQOLRaidBar_" .. id, parent)
     btn:SetSize(BUTTON_SIZE, BUTTON_SIZE)
 
-    -- Modern dark glass style
     btn:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -148,7 +132,6 @@ local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
     btn:SetBackdropColor(0.04, 0.06, 0.1, 0.95)
     btn:SetBackdropBorderColor(0.2, 0.35, 0.55, 0.6)
 
-    -- Icon
     if iconPath then
         btn.icon = btn:CreateTexture(nil, "ARTWORK")
         btn.icon:SetTexture(iconPath)
@@ -158,7 +141,6 @@ local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
         btn.icon:SetAlpha(0.85)
     end
 
-    -- Label
     if label then
         btn.label = btn:CreateFontString(nil, "OVERLAY")
         btn.label:SetFont(FONT_PATH, iconPath and 8 or 9, "OUTLINE")
@@ -167,7 +149,6 @@ local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
         btn.label:SetTextColor(0.8, 0.9, 1, 1)
     end
 
-    -- Hover glow effect
     btn:SetScript("OnEnter", function(self)
         self:SetBackdropBorderColor(0.4, 0.7, 1, 1)
         self:SetBackdropColor(0.1, 0.14, 0.24, 0.98)
@@ -185,7 +166,6 @@ local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
         GameTooltip:Hide()
     end)
 
-    -- Press effect
     btn:SetScript("OnMouseDown", function(self)
         self:SetBackdropColor(0.15, 0.2, 0.35, 0.98)
     end)
@@ -198,8 +178,6 @@ local function CreateButton(parent, id, label, iconPath, tooltipText, onClick)
 
     return btn
 end
-
--- ==================== SAVE POSITION ====================
 
 local function SaveBarPosition()
     if not mainFrame then return end
@@ -216,7 +194,6 @@ local function SaveBarPosition()
     end
 end
 
--- ==================== BAR CREATION ====================
 
 local function CreateRaidBar()
     local db = AruiQOLDB and AruiQOLDB.RaidBar
@@ -241,9 +218,7 @@ local function CreateRaidBar()
 
     local totalWidth = BAR_PADDING * 2 + numButtons * BUTTON_SIZE + (numButtons - 1) * BUTTON_SPACING
 
-    -- Create or reuse frame
     if mainFrame then
-        -- Clean up old buttons
         for _, btn in ipairs(barButtons) do
             if btn then
                 btn:Hide()
@@ -264,8 +239,6 @@ local function CreateRaidBar()
         mainFrame:EnableMouse(true)
         mainFrame:RegisterForDrag("LeftButton")
         mainFrame.isMoving = false
-
-        -- Alt+Drag like SmartTrack toggle
         mainFrame:SetScript("OnDragStart", function(self)
             if IsAltKeyDown() and self:IsMovable() then
                 self:StartMoving()
@@ -280,7 +253,6 @@ local function CreateRaidBar()
             end
         end)
 
-        -- Tooltip on hover
         mainFrame:SetScript("OnEnter", function(self)
             if IsAltKeyDown() then
                 GameTooltip:SetOwner(self, "ANCHOR_TOP")
@@ -316,7 +288,6 @@ local function CreateRaidBar()
         mainFrame.accentLine:SetColorTexture(0.25, 0.55, 0.9, 0.7)
     end
 
-    -- Bottom subtle line
     if mainFrame.bottomLine then
         mainFrame.bottomLine:Show()
     else
@@ -327,7 +298,6 @@ local function CreateRaidBar()
         mainFrame.bottomLine:SetColorTexture(0.15, 0.3, 0.5, 0.4)
     end
 
-    -- Restore position or default
     if db.position then
         mainFrame:ClearAllPoints()
         mainFrame:SetPoint(db.position.point, UIParent, db.position.relativePoint, db.position.x, db.position.y)
@@ -336,7 +306,6 @@ local function CreateRaidBar()
         mainFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
     end
 
-    -- Create buttons
     local xOffset = BAR_PADDING
 
     for i, btnId in ipairs(buttons) do
@@ -433,7 +402,6 @@ local function CreateRaidBar()
         end
     end
 
-    -- Pull timer overlay
     if not pullTimerFrame then
         pullTimerFrame = CreateFrame("Frame", "AruiQOLRaidBarPullTimer", UIParent)
         pullTimerFrame:SetSize(120, 60)
@@ -455,7 +423,6 @@ local function CreateRaidBar()
         pullTimerFrame:Hide()
     end
 
-    -- Show/hide logic
     if db.showOnlyInRaid then
         if IsInRaid and IsInRaid() then
             mainFrame:Show()
@@ -469,7 +436,6 @@ local function CreateRaidBar()
     end
 end
 
--- ==================== GROUP ROSTER UPDATE ====================
 
 local function UpdateVisibility()
     local db = AruiQOLDB and AruiQOLDB.RaidBar
@@ -488,7 +454,6 @@ local function UpdateVisibility()
     end
 end
 
--- ==================== GET FRAME HELPER ====================
 
 local function GetRaidBarFrame()
     local f = _G["AruiQOLRaidBarFrame"]
@@ -497,8 +462,6 @@ local function GetRaidBarFrame()
     end
     return mainFrame
 end
-
--- ==================== INIT ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -522,8 +485,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         print("|cff88ccff[RaidBar]|r Loaded - Alt+Drag to move, /aqolrb for options")
     end
 end)
-
--- ==================== SLASH COMMANDS ====================
 
 SLASH_ARUIQOLRB1 = "/aqolrb"
 SlashCmdList["ARUIQOLRB"] = function(msg)

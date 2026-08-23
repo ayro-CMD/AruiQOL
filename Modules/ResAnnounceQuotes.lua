@@ -1,7 +1,4 @@
--- ============================================================
 -- Arui QOL - ResAnnounce Quotes Data
-
--- ============================================================
 
 noTargetQuotes = {      -- Used when target name is UNKNOWN. No %t placeholder.
 

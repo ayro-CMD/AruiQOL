@@ -1,10 +1,7 @@
--- ============================================================
 -- Arui QOL - WhoPulled Module
--- ============================================================
 
 local WhoPulled = {}
 
--- ==================== STATE ====================
 
 local pullState = {
     lastPullTime = nil,
@@ -19,7 +16,6 @@ local pullState = {
     bossFound = false,
 }
 
--- ==================== CLASS COLORS ====================
 
 local CLASS_COLORS = {
     WARRIOR     = "cffC79C6C",
@@ -60,8 +56,6 @@ local function ColorName(name)
 
     return "|cffffffff" .. displayName .. "|r"
 end
-
--- ==================== 3.3.5 BOSS DETECTION ====================
 
 local BOSS_CLASSIFICATIONS_BOSS = { worldboss = true, rareelite = true }
 local BOSS_CLASSIFICATIONS_DUNGEON = { worldboss = true, rareelite = true, elite = true }
@@ -123,8 +117,6 @@ local function ScanForBoss()
     return nil
 end
 
--- ==================== PULL DETECTION ====================
-
 local function ResetPullState()
     wipe(pullState.combatEntries)
     pullState.firstCombatUnit = nil
@@ -154,7 +146,6 @@ local function ScanGroupCombat()
             end
         end
 
-        -- Check pet
         if petUnit and UnitExists(petUnit) and UnitAffectingCombat(petUnit) then
             local petName = UnitName(petUnit)
             local ownerName = UnitName(unit)
@@ -180,8 +171,6 @@ local function ScanGroupCombat()
         end
     end
 end
-
--- ==================== ANNOUNCE ====================
 
 local function AnnouncePull()
     local db = AruiQOLDB and AruiQOLDB.WhoPulled
@@ -218,12 +207,10 @@ local function AnnouncePull()
         msg = msg .. " with |cff88ff88" .. pullState.pullSpell .. "|r"
     end
 
-    -- Self message
     if db.announceSelf ~= false then
         print(msg)
     end
 
-    -- Chat announce
     if db.announceChat then
         local plainMsg = pullState.whoPulled
         if pullState.isPetPull then plainMsg = plainMsg .. " (pet)" end
@@ -262,7 +249,6 @@ local function AnnouncePull()
     end
 end
 
--- ==================== COMBAT LOG DETECTION ====================
 
 local AFFIL_MASK = 0x00000007
 local HOSTILE_MASK = 0x00000040
@@ -296,10 +282,8 @@ local function OnCLEU(...)
 
     if not subEvent or not srcFlags or not dstFlags then return end
 
-    -- Skip deaths
     if subEvent == "UNIT_DIED" or subEvent == "UNIT_DESTROYED" or subEvent == "PARTY_KILL" then return end
 
-    -- Source is in our group, dest is hostile
     if bit.band(srcFlags, AFFIL_MASK) ~= 0 and bit.band(dstFlags, HOSTILE_MASK) ~= 0 then
         if srcName and not cleuFirstHostile[srcName] then
             cleuFirstHostile[srcName] = GetTime()
@@ -318,8 +302,6 @@ local function OnCLEU(...)
         end
     end
 end
-
--- ==================== POLL FRAME ====================
 
 local pollFrame = nil
 local pollAccum = 0
@@ -390,8 +372,6 @@ local function PollOnUpdate(self, elapsed)
     AnnouncePull()
 end
 
--- ==================== EVENT HANDLERS ====================
-
 local eventFrame = nil
 
 local function OnEvent(self, ev, ...)
@@ -450,7 +430,6 @@ local function OnEvent(self, ev, ...)
     end
 end
 
--- ==================== INIT ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -461,18 +440,15 @@ initFrame:SetScript("OnEvent", function(self, event)
         local db = AruiQOLDB and AruiQOLDB.WhoPulled
         if not db then return end
 
-        -- Create poll frame
         pollFrame = CreateFrame("Frame")
         pollFrame:Hide()
         pollFrame:SetScript("OnUpdate", PollOnUpdate)
 
-        -- Create event frame
         eventFrame = CreateFrame("Frame")
         eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
         eventFrame:RegisterEvent("ENCOUNTER_START")
         eventFrame:SetScript("OnEvent", OnEvent)
 
-        -- Delay initial zone check
         C_Timer.After(2, function()
             OnEvent(eventFrame, "ZONE_CHANGED_NEW_AREA")
         end)
@@ -480,8 +456,6 @@ initFrame:SetScript("OnEvent", function(self, event)
         print("|cff88ccff[WhoPulled]|r Loaded - Mode: " .. (db.trackMode or "boss"))
     end
 end)
-
--- ==================== SLASH COMMANDS ====================
 
 SLASH_ARUIQOLWP1 = "/aqolwp"
 SlashCmdList["ARUIQOLWP"] = function(msg)
@@ -510,7 +484,6 @@ SlashCmdList["ARUIQOLWP"] = function(msg)
         print("  Last Pull = " .. (pullState.whoPulled and ColorName(pullState.whoPulled) or "None"))
         if pullState.lastBossName then print("  Last Boss = |cffff5555" .. pullState.lastBossName .. "|r") end
         if pullState.pullSpell then print("  Pull Spell = |cff88ff88" .. pullState.pullSpell .. "|r") end
-        -- Test boss scan
         local boss = ScanForBoss()
         print("  Boss Scan = " .. (boss and "|cff00ff00" .. boss .. "|r" or "|cffff0000No boss found|r"))
     elseif pullState.whoPulled then

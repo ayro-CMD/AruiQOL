@@ -1,10 +1,8 @@
--- ============================================================
 -- Arui QOL - RaidCheck Module
--- ============================================================
 
 local RaidCheck = {}
 
--- ==================== WOTLK 3.3.5 FLASK IDs ====================
+-- WOTLK 3.3.5 FLASK IDs
 
 local FLASK_SPELLS = {
     -- Northrend Flasks
@@ -47,7 +45,7 @@ local FLASK_SPELLS = {
     [28511] = true,  -- Elixir of Mighty Strength
 }
 
--- ==================== WOTLK 3.3.5 FOOD BUFF IDs ====================
+-- WOTLK 3.3.5 FOOD BUFF IDs
 
 local FOOD_SPELLS = {
     -- Well Fed buffs
@@ -82,7 +80,7 @@ local FOOD_SPELLS = {
     [87551] = true,  [87561] = true,  [87563] = true,
 }
 
--- ==================== WELL FED NAME CACHE ====================
+-- WELL FED NAME CACHE
 
 local wellFedName = nil
 local WELL_FED_IDS = {57367, 57327, 57294, 57360, 57291, 57332, 57356, 57325, 57358, 57365}
@@ -98,8 +96,6 @@ local function GetWellFedName()
     end
     return nil
 end
-
--- ==================== CHECK LOGIC ====================
 
 local function CheckPlayer(unit)
     local hasFlask = false
@@ -119,7 +115,6 @@ local function CheckPlayer(unit)
             hasFood = true
         end
 
-        -- Check by name as fallback
         if not hasFood then
             local wfName = GetWellFedName()
             if wfName and name == wfName then
@@ -160,7 +155,6 @@ local function DoCheck(checkType)
         end
     elseif GetNumPartyMembers and GetNumPartyMembers() > 0 then
         numPlayers = GetNumPartyMembers() + 1
-        -- Check self
         local hasFlask, hasFood = CheckPlayer("player")
         local myName = UnitName("player")
         if not hasFlask and not hasFood then
@@ -170,7 +164,7 @@ local function DoCheck(checkType)
         elseif not hasFood then
             table.insert(noFood, myName)
         end
-        -- Check party
+
         for i = 1, GetNumPartyMembers() do
             local unit = "party" .. i
             if UnitExists(unit) and not UnitIsDeadOrGhost(unit) and UnitIsConnected(unit) then
@@ -190,11 +184,9 @@ local function DoCheck(checkType)
         return
     end
 
-    -- Build output
     local totalChecked = #noFlask + #noFood + #noBoth
-    local totalBad = #noFlask + #noFood + #noBoth - #noBoth  -- count unique players missing something
+    local totalBad = #noFlask + #noFood + #noBoth - #noBoth
 
-    -- Consolidate: noBoth players are in both lists
     local missingFlask = {}
     for _, name in ipairs(noFlask) do table.insert(missingFlask, name) end
     for _, name in ipairs(noBoth) do table.insert(missingFlask, name) end
@@ -203,7 +195,6 @@ local function DoCheck(checkType)
     for _, name in ipairs(noFood) do table.insert(missingFood, name) end
     for _, name in ipairs(noBoth) do table.insert(missingFood, name) end
 
-    -- Output
     local chatType = "RAID"
     if not (IsInRaid and IsInRaid()) then chatType = "PARTY" end
 
@@ -216,11 +207,9 @@ local function DoCheck(checkType)
         return
     end
 
-    -- Flask report
     if #missingFlask > 0 then
         local flaskStr = "No Flask (" .. #missingFlask .. "): " .. table.concat(missingFlask, ", ")
         if checkType == "chat" then
-            -- Split long messages
             if #flaskStr > 240 then
                 SendChatMessage("No Flask (" .. #missingFlask .. "):", chatType)
                 local chunk = ""
@@ -239,7 +228,6 @@ local function DoCheck(checkType)
         print("|cffff5555[RaidCheck]|r |cffff5555No Flask (" .. #missingFlask .. "):|r " .. table.concat(missingFlask, ", "))
     end
 
-    -- Food report
     if #missingFood > 0 then
         local foodStr = "No Food (" .. #missingFood .. "): " .. table.concat(missingFood, ", ")
         if checkType == "chat" then
@@ -261,7 +249,6 @@ local function DoCheck(checkType)
         print("|cffffaa00[RaidCheck]|r |cffffaa00No Food (" .. #missingFood .. "):|r " .. table.concat(missingFood, ", "))
     end
 
-    -- Summary
     local summary = string.format("Checked %d players - Missing: %d flask, %d food",
         numPlayers, #missingFlask, #missingFood)
     if checkType == "chat" then
@@ -270,7 +257,6 @@ local function DoCheck(checkType)
     print("|cff88ccff[RaidCheck]|r " .. summary)
 end
 
--- ==================== INIT ====================
 
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
@@ -285,7 +271,6 @@ initFrame:SetScript("OnEvent", function(self, event)
     end
 end)
 
--- ==================== SLASH COMMANDS ====================
 
 SLASH_ARUIQOLRC1 = "/aqolrc"
 SlashCmdList["ARUIQOLRC"] = function(msg)

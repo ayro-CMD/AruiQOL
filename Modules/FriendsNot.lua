@@ -1,6 +1,4 @@
--- ============================================================
 -- Arui QOL - Friends Notifications Module
--- ============================================================
 
 local ok, err = pcall(function()
     local gmatch = string.gmatch
@@ -39,7 +37,6 @@ local ok, err = pcall(function()
     end
 
     if BNGetFriendInfoByID then
-        -- Override to work with regular friend names
         local origBNGetFriendInfoByID = BNGetFriendInfoByID
         function BNGetFriendInfoByID(name)
             return nil, name, ""

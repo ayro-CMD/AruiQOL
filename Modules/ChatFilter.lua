@@ -1,6 +1,4 @@
--- ============================================================
 -- Arui QOL - Chat Filter Module
--- ============================================================
 
 local ChatFilter = {}
 local FILTER_LOG_LIMIT = 50
@@ -15,8 +13,6 @@ local lastDedupeKey = nil
 local lastDedupeTime = 0
 local filtersRegistered = false
 
--- ==================== LOGGING ====================
-
 local function AddLog(player, msg, trigger)
     local key = player .. "|" .. (trigger or "") .. "|" .. (msg or "")
     if lastDedupeKey == key and (GetTime() - lastDedupeTime) < DEDUPLICATE_INTERVAL then return end
@@ -27,8 +23,6 @@ local function AddLog(player, msg, trigger)
     table.insert(filterLog, 1, entry)
     if #filterLog > FILTER_LOG_LIMIT then table.remove(filterLog) end
 end
-
--- ==================== SPAM BURST ====================
 
 local function IsSpamBurst(sender)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -46,8 +40,6 @@ local function IsSpamBurst(sender)
     entry.count = entry.count + 1
     return entry.count > MAX_SPAM_MESSAGES_PER_PLAYER
 end
-
--- ==================== REPEAT FILTER ====================
 
 local function IsRepeatMessage(sender, msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -71,8 +63,6 @@ local function IsRepeatMessage(sender, msg)
     return false
 end
 
--- ==================== CUSTOM KEYWORDS ====================
-
 local function MatchesCustomKeywords(msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
     if not db or not db.customKeywords then return false, nil end
@@ -84,8 +74,6 @@ local function MatchesCustomKeywords(msg)
     end
     return false, nil
 end
-
--- ==================== CHANNEL LFG ====================
 
 local LFG_CHANNEL_NAMES = { "world", "ascension", "lfg", "global", "lookingforgroup" }
 
@@ -105,18 +93,15 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
     if not db or not db.filterWorldLFG then return false, nil end
     if event ~= "CHAT_MSG_CHANNEL" then return false, nil end
 
-    -- Option: filter LFG content from ALL custom channels
     local isTargetChannel = false
     if db.filterAllChannelsLFG then
         isTargetChannel = true
     end
 
-    -- Check channel display name (e.g. "2. Ascension")
     if not isTargetChannel and IsLFGChannel(channelName) then
         isTargetChannel = true
     end
 
-    -- Check channelBaseName (arg9) — clean name without number prefix
     if not isTargetChannel then
         local channelBaseName = select(5, ...)
         if IsLFGChannel(channelBaseName) then
@@ -124,7 +109,6 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
         end
     end
 
-    -- Fallback: check user-configured channel indices
     if not isTargetChannel and db.filterLFGChannels then
         local channelIndex = select(4, ...)
         if channelIndex and db.filterLFGChannels[channelIndex] then
@@ -135,12 +119,10 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
 
     local lowerMsg = string.lower(msg)
 
-    -- Direct LFG/LFM
     if string.find(lowerMsg, "lfg", 1, true) or string.find(lowerMsg, "lfm", 1, true) then
         return true, "Channel LFG"
     end
 
-    -- LF + space/number + role (e.g. "lf1m tank", "lf 2 dps")
     if string.find(lowerMsg, "lf ", 1, true) or string.find(lowerMsg, "lf%d", 1) then
         local roles = { "dps", "tank", "heal", "healer", "heals" }
         for _, role in ipairs(roles) do
@@ -150,7 +132,6 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
         end
     end
 
-    -- Role-for patterns (e.g. "1 healer for [Keystone]", "need tank for raid")
     local roleForPatterns = {
         "healer for", "heals for", "tank for", "dps for",
         "need healer", "need tank", "need dps", "need heal", "need heals",
@@ -164,7 +145,6 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
         end
     end
 
-    -- Number + role pattern (e.g. "1 healer", "2 dps", "3 tanks")
     if string.find(lowerMsg, "%d+ ?healer", 1) or string.find(lowerMsg, "%d+ ?tank", 1) or
        string.find(lowerMsg, "%d+ ?dps", 1) or string.find(lowerMsg, "%d+ ?heal", 1) then
         return true, "Channel LFG"
@@ -172,8 +152,6 @@ local function MatchesChannelLFG(event, msg, channelName, ...)
 
     return false, nil
 end
-
--- ==================== BOOST / TRADE ====================
 
 local function MatchesBoostFilter(msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -188,7 +166,6 @@ local function MatchesBoostFilter(msg)
     return false, nil
 end
 
--- ==================== GUILD RECRUITMENT ====================
 
 local function MatchesGuildFilter(msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -203,8 +180,6 @@ local function MatchesGuildFilter(msg)
     return false, nil
 end
 
--- ==================== TRADE CHANNEL FILTER ====================
-
 local function MatchesTradeFilter(event, msg, channelName)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
     if not db or not db.filterTrade then return false, nil end
@@ -216,8 +191,6 @@ local function MatchesTradeFilter(event, msg, channelName)
     end
     return false, nil
 end
-
--- ==================== GENERAL CHANNEL FILTER ====================
 
 local function MatchesGeneralFilter(event, msg, channelName)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -231,16 +204,13 @@ local function MatchesGeneralFilter(event, msg, channelName)
     return false, nil
 end
 
--- ==================== LINK FILTER ====================
 
 local function MatchesLinkFilter(msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
     if not db or not db.filterLinks then return false, nil end
-    -- Match item links, achievement links, etc
     if string.find(msg, "|Hitem:", 1, true) or string.find(msg, "|Hachievement:", 1, true) then
-        return false, nil  -- allow item/achievement links
+        return false, nil
     end
-    -- Filter URL-like patterns
     if string.find(msg, "www%.", 1, true) or string.find(msg, "http://", 1, true) or
        string.find(msg, "https://", 1, true) or string.find(msg, "%.com", 1, true) or
        string.find(msg, "%.net", 1, true) or string.find(msg, "%.org", 1, true) then
@@ -248,8 +218,6 @@ local function MatchesLinkFilter(msg)
     end
     return false, nil
 end
-
--- ==================== WHISPER FILTER ====================
 
 local function MatchesWhisperFilter(event, msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -266,20 +234,14 @@ local function MatchesWhisperFilter(event, msg)
     return false, nil
 end
 
--- ==================== NON-LATIN FILTER ====================
-
 local function MatchesNonLatinFilter(msg)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
     if not db or not db.filterNonLatin then return false, nil end
-    -- Strip WoW color codes
     local clean = string.gsub(msg, "|c%x%x%x%x%x%x%x%x", "")
     clean = string.gsub(clean, "|r", "")
-    -- Strip links
     clean = string.gsub(clean, "|H[^|]*|h[^|]*|h", "")
-    -- Strip punctuation and spaces
     clean = string.gsub(clean, "[%s%p%d]", "")
     if clean == "" then return false, nil end
-    -- Count latin vs non-latin characters
     local total = string.len(clean)
     local latin = 0
     for i = 1, total do
@@ -295,14 +257,10 @@ local function MatchesNonLatinFilter(msg)
     return false, nil
 end
 
--- ==================== REPLACE MODE ====================
-
 local function ShouldReplace()
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
     return db and db.replaceMode
 end
-
--- ==================== MAIN FILTER ====================
 
 local function ChatFilter_OnEvent(self, event, msg, player, language, channelName, ...)
     local db = AruiQOLDB and AruiQOLDB.ChatFilter
@@ -312,21 +270,18 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
     player = string.gsub(player, "%-[^|]+", "")
     if player == UnitName("player") then return false end
 
-    -- Spam burst
     if IsSpamBurst(player) then
         AddLog(player, msg, "Spam Burst")
         if ShouldReplace() then return false, string.format("|cff666666[Spam Filtered]|r") end
         return true
     end
 
-    -- Repeat messages
     if IsRepeatMessage(player, msg) then
         AddLog(player, msg, "Repeat")
         if ShouldReplace() then return false, string.format("|cff666666[Repeat Filtered]|r") end
         return true
     end
 
-    -- Custom keywords
     local matched, trigger = MatchesCustomKeywords(msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -334,7 +289,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Channel LFG
     matched, trigger = MatchesChannelLFG(event, msg, channelName, ...)
     if matched then
         AddLog(player, msg, trigger)
@@ -342,7 +296,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Boost/Trade
     matched, trigger = MatchesBoostFilter(msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -350,7 +303,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Guild recruitment
     matched, trigger = MatchesGuildFilter(msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -358,7 +310,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Trade channel
     matched, trigger = MatchesTradeFilter(event, msg, channelName)
     if matched then
         AddLog(player, msg, trigger)
@@ -366,7 +317,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- General channel
     matched, trigger = MatchesGeneralFilter(event, msg, channelName)
     if matched then
         AddLog(player, msg, trigger)
@@ -374,7 +324,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Links
     matched, trigger = MatchesLinkFilter(msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -382,7 +331,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Whisper spam
     matched, trigger = MatchesWhisperFilter(event, msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -390,7 +338,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
         return true
     end
 
-    -- Non-Latin
     matched, trigger = MatchesNonLatinFilter(msg)
     if matched then
         AddLog(player, msg, trigger)
@@ -401,8 +348,6 @@ local function ChatFilter_OnEvent(self, event, msg, player, language, channelNam
     return false
 end
 
--- ==================== FILTER LOG API ====================
-
 function ChatFilter.GetLog()
     return filterLog
 end
@@ -410,8 +355,6 @@ end
 function ChatFilter.ClearLog()
     wipe(filterLog)
 end
-
--- ==================== REGISTER ====================
 
 local function RegisterFilters()
     if filtersRegistered then return end
@@ -422,8 +365,6 @@ local function RegisterFilters()
     ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", ChatFilter_OnEvent)
     ChatFrame_AddMessageEventFilter("CHAT_MSG_EMOTE", ChatFilter_OnEvent)
 end
-
--- ==================== CLEANUP ====================
 
 C_Timer.NewTicker(60, function()
     local now = GetTime()
@@ -439,8 +380,6 @@ C_Timer.NewTicker(60, function()
     end
 end)
 
--- ==================== INIT ====================
-
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("PLAYER_LOGIN")
 initFrame:SetScript("OnEvent", function(self, event)
@@ -450,5 +389,4 @@ initFrame:SetScript("OnEvent", function(self, event)
     end
 end)
 
--- Expose for Options.lua
 _G.AruiQOLChatFilter = ChatFilter
